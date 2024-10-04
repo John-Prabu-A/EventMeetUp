@@ -6,15 +6,33 @@ import Avatar from '~/components/Avatar';
 import { useAuth } from '~/contexts/AuthProvider';
 import { supabase } from '~/utils/supabase';
 
+// Define the type for the profile updates
+type ProfileUpdates = {
+  username: string;
+  website: string;
+  avatar_url: string;
+  full_name: string;
+};
+
+// Define the type for the session user
+type User = {
+  id: string;
+  email: string;
+};
+
+// Define the type for the session
+type Session = {
+  user: User;
+};
+
 export default function Profile() {
-  const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState('');
-  const [website, setWebsite] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [username, setUsername] = useState<string>('');
+  const [website, setWebsite] = useState<string>('');
+  const [fullName, setFullName] = useState<string>('');
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
 
-  const [avatarUrl, setAvatarUrl] = useState('');
-
-  const { session } = useAuth();
+  const { session } = useAuth() as { session: Session | null };
 
   useEffect(() => {
     if (session) getProfile();
@@ -27,18 +45,19 @@ export default function Profile() {
 
       const { data, error, status } = await supabase
         .from('profiles')
-        .select(`username, website, avatar_url, full_name`)
-        .eq('id', session?.user.id)
+        .select('username, website, avatar_url, full_name')
+        .eq('id', session.user.id)
         .single();
+
       if (error && status !== 406) {
         throw error;
       }
 
       if (data) {
-        setUsername(data.username);
-        setWebsite(data.website);
-        setAvatarUrl(data.avatar_url);
-        setFullName(data.full_name);
+        setUsername(data.username || '');
+        setWebsite(data.website || '');
+        setAvatarUrl(data.avatar_url || '');
+        setFullName(data.full_name || '');
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -49,30 +68,16 @@ export default function Profile() {
     }
   }
 
-  async function updateProfile({
-    username,
-    website,
-    avatar_url,
-    full_name,
-  }: {
-    username: string;
-    website: string;
-    avatar_url: string;
-  }) {
+  async function updateProfile(updates: ProfileUpdates) {
     try {
       setLoading(true);
       if (!session?.user) throw new Error('No user on the session!');
 
-      const updates = {
-        id: session?.user.id,
-        username,
-        website,
-        avatar_url,
-        full_name,
-        updated_at: new Date(),
-      };
-
-      const { error } = await supabase.from('profiles').upsert(updates);
+      const { error } = await supabase.from('profiles').upsert({
+        id: session.user.id,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      });
 
       if (error) {
         throw error;
@@ -90,20 +95,20 @@ export default function Profile() {
     <View className="flex-1 gap-3 bg-white p-5">
       <Stack.Screen options={{ title: 'Profile' }} />
 
-      <View className="items-center ">
+      <View className="items-center">
         <Avatar
           size={200}
           url={avatarUrl}
           onUpload={(url: string) => {
             setAvatarUrl(url);
-            updateProfile({ username, website, avatar_url: url });
+            updateProfile({ username, website, avatar_url: url, full_name: fullName });
           }}
         />
       </View>
 
       <TextInput
         editable={false}
-        value={session.user.email}
+        value={session?.user.email}
         placeholder="email"
         autoCapitalize="none"
         className="rounded-md border border-gray-200 p-3 text-gray-600"

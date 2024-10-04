@@ -16,7 +16,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: 'black',
       }}>
-        <Tabs.Screen
+      <Tabs.Screen
         name="index"
         options={{
           href: null,
@@ -27,7 +27,9 @@ export default function TabLayout() {
         options={{
           title: 'Events',
           headerShown: false,
-          tabBarIcon: ({ color }) => <MaterialIcons name="event-available" size={24} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="event-available" size={24} color={color} />
+          ),
         }}
       />
 
