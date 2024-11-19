@@ -75,6 +75,7 @@ export type Database = {
           created_at: string
           date: string | null
           description: string | null
+          embedding: string | null
           id: number
           image_uri: string | null
           location: string | null
@@ -86,6 +87,7 @@ export type Database = {
           created_at?: string
           date?: string | null
           description?: string | null
+          embedding?: string | null
           id?: number
           image_uri?: string | null
           location?: string | null
@@ -97,6 +99,7 @@ export type Database = {
           created_at?: string
           date?: string | null
           description?: string | null
+          embedding?: string | null
           id?: number
           image_uri?: string | null
           location?: string | null
@@ -120,6 +123,7 @@ export type Database = {
           full_name: string | null
           id: string
           updated_at: string | null
+          user_embedding: string | null
           username: string | null
           website: string | null
         }
@@ -128,6 +132,7 @@ export type Database = {
           full_name?: string | null
           id: string
           updated_at?: string | null
+          user_embedding?: string | null
           username?: string | null
           website?: string | null
         }
@@ -136,24 +141,167 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+          user_embedding?: string | null
           username?: string | null
           website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      binary_quantize:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: unknown
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
+      fetch_events_by_user_embedding: {
+        Args: {
+          user_id: string
+          limit_count: number
+        }
+        Returns: {
+          id: number
+          created_at: string
+          title: string
+          description: string
+          date: string
+          location: string
+          image_uri: string
+          event_user_id: string
+          lat: number
+          long: number
+          dist_meters: number
+        }[]
+      }
+      get_ordered_data: {
+        Args: {
+          ids: number[]
+          limit_count: number
+          lat: number
+          long: number
+        }
+        Returns: {
+          created_at: string
+          date: string | null
+          description: string | null
+          embedding: string | null
+          id: number
+          image_uri: string | null
+          location: string | null
+          location_point: unknown | null
+          title: string
+          user_id: string | null
+        }[]
+      }
+      halfvec_avg: {
+        Args: {
+          "": number[]
+        }
+        Returns: unknown
+      }
+      halfvec_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      halfvec_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
+      }
+      hnsw_bit_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ivfflat_bit_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      l2_norm:
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+      l2_normalize:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
       nearby_events: {
         Args: {
           lat: number
@@ -172,6 +320,86 @@ export type Database = {
           long: number
           dist_meters: number
         }[]
+      }
+      recommended_events: {
+        Args: {
+          p_user_id: string
+          user_lat: number
+          user_long: number
+          limit_count: number
+        }
+        Returns: {
+          id: number
+          created_at: string
+          title: string
+          description: string
+          date: string
+          location: string
+          image_uri: string
+          user_id: string
+          dist_meters: number
+        }[]
+      }
+      sparsevec_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
+      }
+      vector_avg: {
+        Args: {
+          "": number[]
+        }
+        Returns: string
+      }
+      vector_dims:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+      vector_norm: {
+        Args: {
+          "": string
+        }
+        Returns: number
+      }
+      vector_out: {
+        Args: {
+          "": string
+        }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: {
+          "": string
+        }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
       }
     }
     Enums: {
@@ -263,4 +491,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

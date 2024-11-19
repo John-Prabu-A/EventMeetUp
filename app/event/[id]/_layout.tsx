@@ -1,7 +1,6 @@
 import React from 'react';
 import { Stack, useRouter } from 'expo-router';
-import { Button, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
 
 export default function EventLayout() {
   const router = useRouter();
@@ -15,9 +14,9 @@ export default function EventLayout() {
     <Stack
       screenOptions={{
         headerLeft: () => (
-          <TouchableOpacity onPress={handleBackPress} style={{ padding: 10 }}>
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
+          <View style={{ padding: 10 }}>
+            {/* <Ionicons name="arrow-back" size={24} color="black" /> */}
+          </View>
         ),
       }}>
       <Stack.Screen name="index" options={{ title: 'Event Details' }} />

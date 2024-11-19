@@ -5,9 +5,8 @@ import { useEffect, useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 
 import SupaImage from './SupaImage';
-
 import { supabase } from '~/utils/supabase';
-import { EventExtended } from '~/types/db';
+import { EventExtended, NearbyEvent, RecommendedEvent } from '~/types/db';
 
 export default function EventListItem({ event }: { event: EventExtended }) {
   const [numberOfAttendees, setNumberOfAttendees] = useState(0);
@@ -27,7 +26,10 @@ export default function EventListItem({ event }: { event: EventExtended }) {
 
   return (
     <Link href={`/event/${event.id}`} asChild>
-      <Pressable className="m-3 gap-3 border-b-2 border-gray-100 pb-3">
+      <Pressable
+        className="border-2 border-gray-200 rounded-lg p-3 bg-white shadow-md"
+        style={{ maxWidth: 400, height: 150, minWidth: 320 }}
+      >
         <View className="flex-row">
           <View className="flex-1 gap-2">
             <Text className="text-lg font-semibold uppercase text-amber-800">
@@ -37,17 +39,20 @@ export default function EventListItem({ event }: { event: EventExtended }) {
               {event.title}
             </Text>
 
-            <Text className="text-gray-700">{event.location}</Text>
+            {/* Ensure the location is wrapped in a Text component */}
+            <Text className="text-gray-700" numberOfLines={1}>
+              {event.location}
+            </Text>
           </View>
 
           {/* Event image */}
           {event.image_uri && (
-            <SupaImage path={event.image_uri} className="aspect-video w-2/5 rounded-xl" />
+            <SupaImage path={event.image_uri} className="aspect-video w-40 rounded-xl" />
           )}
         </View>
 
         {/* Footer */}
-        <View className="flex-row gap-3">
+        <View className="flex-row gap-3 items-center mt-auto">
           <Text className="mr-auto text-gray-700">
             {numberOfAttendees} going · {Math.round(event.dist_meters / 1000)} km from you
           </Text>

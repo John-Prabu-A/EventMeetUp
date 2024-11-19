@@ -1,42 +1,19 @@
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { NearbyEvent } from '~/types/db';
-// import { useNearbyEvents } from '~/hooks/useNearbyEvents';
-import { supabase } from '~/utils/supabase';
+import { useLocationContext } from '~/contexts/LocationProvider';
+import { useNearbyEventsWithDefaultService } from '~/hooks/useNearbyEvents';
+import { LocationContextType } from '~/types/db';
 
 export default function EventsMapView() {
-  const [events, setEvents] = useState<NearbyEvent>([]);
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        // const { data, error } = await supabase
-        //   .from('events')
-        //   .select('*');
-          
-          const { data, error } = await supabase.rpc('nearby_events', {
-            lat: 80.134024,
-            long: 12.9426658,
-          });
-        if (error) {
-          console.error('Error fetching events:', error);
-        } else {
-          setEvents(data);
-        }
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      }
-    };
-
-    fetchEvents();
-  }, []);
-  console.warn("Events In Map : ", events);
+  const { events } = useNearbyEventsWithDefaultService();
+  const { location } = useLocationContext() as LocationContextType;
 
   // Define initial region for the map
   const initialRegion = {
-    latitude: 12.94266584, // Default latitude
-    longitude: 80.13402, // Default longitude
+    latitude: location?.coords.latitude || 12.9426658, // Default latitude
+    longitude: location?.coords.longitude || 80.13402, // Default longitude
     latitudeDelta: 0.0922, // Zoom level
     longitudeDelta: 0.0421,
   };
@@ -46,45 +23,32 @@ export default function EventsMapView() {
       <MapView
         style={{ flex: 1 }}
         initialRegion={initialRegion}
-        showsUserLocation // Show user's location on the map
+        showsUserLocation
       >
-        {events.map((event) => (
-          event.long && event.lat && (
-            <Marker
-              key={event.id}
-              coordinate={{
-                latitude: event.lat, // Assuming `lat` is a property of event
-                longitude: event.long, // Assuming `long` is a property of event
-              }}
-              title={event.title} // Event title
-              description={event.description} // Event description
-              onPress={() => {
-                // Navigate to event details when marker is pressed
-                router.push(`/event/${event.id}`);
-              }}
-            />
-          )
-        ))}
+        {events.map(
+          (event) =>
+            event.long &&
+            event.lat && (
+              <Marker
+                key={event.id}
+                coordinate={{
+                  latitude: event.lat, // Assuming `lat` is a property of event
+                  longitude: event.long, // Assuming `long` is a property of event
+                }}
+                title={event.title} // Event title
+                description={event.description} // Event description
+                onPress={() => {
+                  // Navigate to event details when marker is pressed
+                  router.push(`/event/${event.id}`);
+                }}
+              />
+            )
+        )}
       </MapView>
       <Text style={{ padding: 10 }}>Map</Text>
     </View>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // // import Mapbox, {
 // //   Camera,
@@ -113,7 +77,7 @@ export default function EventsMapView() {
 
 //   return (
 //     <View className="flex-1 bg-red-300">
-//       {/* 
+//       {/*
 //       <MapView style={{ height: '100%' }}>
 //         <Camera followZoomLevel={14} followUserLocation />
 //         <LocationPuck puckBearingEnabled puckBearing="heading" pulsing={{ isEnabled: true }} />
@@ -151,5 +115,3 @@ export default function EventsMapView() {
 //     </View>
 //   );
 // }
-
-

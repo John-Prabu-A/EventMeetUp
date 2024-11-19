@@ -1,14 +1,24 @@
 import { Database } from "./supabase";
+import * as Location from 'expo-location';
 
 export type Event = Database["public"]["Tables"]["events"]["Row"];
+
 export type NearbyEvent =
   Database["public"]["Functions"]["nearby_events"]["Returns"];
+
+export type RecommendedEvent = Database["public"]["Functions"]["get_ordered_data"]["Returns"];
 
 export type Attendance = Database["public"]["Tables"]["attendance"]["Row"];
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
-export type Location = {
+export type LocationContextType = {
+  location: Location.LocationObject | null;
+  errorMsg: string | null;
+  loading: boolean;
+}
+
+export type LocationData = {
   features: {
     geometry: {
       coordinates: [number, number]; // [longitude, latitude]

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import { useLocalSearchParams, Stack, Link } from 'expo-router';
+import { useLocalSearchParams, Stack, Link, Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View, Image, Pressable, ActivityIndicator } from 'react-native';
+import { Text, View, Pressable, ActivityIndicator } from 'react-native';
 
 import SupaImage from '~/components/SupaImage';
 import { useAuth } from '~/contexts/AuthProvider';
@@ -24,21 +24,34 @@ export default function EventPage() {
   const fetchEvent = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('events').select('*').eq('id', id).single();
-      if (error) throw error;
-      setEvent(data);
+      // Fetch event data, expect at most one row
+      const { data: eventData, error: eventError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
 
+      if (eventError) throw eventError;
+      if (!eventData) {
+        console.warn('No event found with the given ID');
+        setEvent(null); // Handle no event case
+      } else {
+        setEvent(eventData);
+      }
+
+      // Fetch attendance data, expect at most one row
       const { data: attendanceData, error: attendanceError } = await supabase
         .from('attendance')
         .select('*')
         .eq('user_id', user?.id || '')
         .eq('event_id', id)
-        .single();
-      if (attendanceError) throw attendanceError; // Throw error if fetching attendance fails
-      setAttendance(attendanceData);
+        .maybeSingle(); // Use maybeSingle() instead of single()
+
+      if (attendanceError) throw attendanceError;
+      setAttendance(attendanceData || null); // Handle no attendance case
     } catch (error) {
       console.error('Error fetching event or attendance:', error);
-      // Handle error appropriately (e.g., show an error message)
+      // Display an appropriate error message to the user
     } finally {
       setLoading(false);
     }
@@ -85,7 +98,10 @@ export default function EventPage() {
         {event.description}
       </Text>
 
-      <Link href={`/event/${event.id}/attendance`} className="text-lg" numberOfLines={2}>
+      <Link
+        href={`/event/${event.id}/attendance` as Href<`/event/${number}/attendance`>}
+        className="text-lg"
+        numberOfLines={2}>
         View attendance
       </Link>
 

@@ -6,10 +6,11 @@ import {
   View,
   AppState,
   TextInput,
-  Button,
   Pressable,
-  Text,
+  Text
 } from 'react-native';
+import { useNearbyEventsWithDefaultService } from '~/hooks/useNearbyEvents';
+import getEmbedding from '~/utils/generateEmbedding';
 
 import { supabase } from '~/utils/supabase';
 
@@ -30,19 +31,57 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const { events } = useNearbyEventsWithDefaultService();
+
   async function signInWithEmail() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: session, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) Alert.alert(error.message);
+
+    await updateUserEmbedding(session?.user?.id as string);
     setLoading(false);
+  }
+
+  async function updateUserEmbedding(userId: string) {
+    const text = JSON.stringify(events[0]);
+    try {
+      // Check if embedding already exists in database
+      const { data: embeddingData, error: embeddingError } = await supabase
+        .from('profiles')
+        .select('user_embedding')
+        .eq('id', userId)
+        .single();
+
+      if (!embeddingData) return;
+
+      if (embeddingError) Alert.alert(embeddingError as string);
+
+      if (embeddingData.user_embedding) return; // Embedding already exists
+
+      const embedding = await getEmbedding(text);
+
+      // Insert embedding into database
+      const { data: updateData, error: insertError } = await supabase
+        .from('profiles')
+        .update({
+          user_embedding: embedding,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', userId);
+
+      if (insertError) Alert.alert(insertError.message);
+    } catch (error) {
+      Alert.alert('Error fetching embedding: ' + (error as Error).message);
+    }
   }
 
   async function signUpWithEmail() {
     setLoading(true);
+
     const {
       data: { session },
       error,
@@ -53,6 +92,9 @@ export default function Auth() {
 
     if (error) Alert.alert(error.message);
     if (!session) Alert.alert('Please check your inbox for email verification!');
+
+    await updateUserEmbedding(session?.user?.id as string);
+
     setLoading(false);
   }
 

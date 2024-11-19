@@ -40,14 +40,18 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vadinsavin.Meetup"
+      "bundleIdentifier": "com.johnprabua.Meetup",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.vadinsavin.Meetup"
+      "package": "com.johnprabua.Meetup",
+      "permissions": ["ACCESS_FINE_LOCATION"]
     }
   }
 }

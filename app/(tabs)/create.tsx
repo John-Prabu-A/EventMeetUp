@@ -6,7 +6,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import AddressAutocomplete from '~/components/AddressAutocomplete';
 import Avatar from '~/components/Avatar';
 import { useAuth } from '~/contexts/AuthProvider';
-import { Location } from '~/types/db';
+import { LocationData } from '~/types/db';
 import { supabase } from '~/utils/supabase';
 
 export default function CreateEvent() {
@@ -16,7 +16,7 @@ export default function CreateEvent() {
   const [description, setDescription] = useState<string>('');
   const [date, setDate] = useState<Date>(new Date());
   const [imageUrl, setImageUrl] = useState<string>('');
-  const [location, setLocation] = useState<Location | null>(null);
+  const [location, setLocation] = useState<LocationData | null>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -143,7 +143,7 @@ export default function CreateEvent() {
         minuteInterval={15}
       />
 
-      <AddressAutocomplete onSelected={(location: Location) => setLocation(location)} />
+      <AddressAutocomplete onSelected={(location: LocationData) => setLocation(location)} />
 
       <Pressable
         onPress={createEvent}

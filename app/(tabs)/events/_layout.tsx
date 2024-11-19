@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link, Stack, Tabs } from 'expo-router';
+import { Text } from 'react-native';
 
 export default function EventsTabLayout() {
   return (
