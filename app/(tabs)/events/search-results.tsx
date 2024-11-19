@@ -4,7 +4,7 @@ import { FlatList, RefreshControl, Text, View, StyleSheet } from 'react-native';
 
 import EventListItem from '~/components/EventListItem';
 import { useLocationContext } from '~/contexts/LocationProvider';
-import { LocationContextType, NearbyEvent, RecommendedEvent } from '~/types/db';
+import { LocationContextType, RecommendedEvent } from '~/types/db';
 import { fetchEventsByQuery } from '~/utils/fetchEventsByQuery'; // Create this utility function
 
 export default function SearchResults() {
@@ -18,7 +18,9 @@ export default function SearchResults() {
     setLoading(true);
     try {
       const results = await fetchEventsByQuery(query, location);
-      setEvents(results);
+      if (results) {
+        setEvents(results);
+      }
     } catch (error) {
       console.error('Error fetching search results:', error);
     } finally {

@@ -1,30 +1,47 @@
-import { router } from 'expo-router';
-import React from 'react';
-import { Text, View } from 'react-native';
+import { router, Stack } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocationContext } from '~/contexts/LocationProvider';
 import { useNearbyEventsWithDefaultService } from '~/hooks/useNearbyEvents';
 import { LocationContextType } from '~/types/db';
 
 export default function EventsMapView() {
-  const { events } = useNearbyEventsWithDefaultService();
-  const { location } = useLocationContext() as LocationContextType;
+  const { events, loading: loadingEvents } = useNearbyEventsWithDefaultService();
+  const { location, loading: loadingLocation } = useLocationContext() as LocationContextType;
 
-  // Define initial region for the map
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Set loading to false once both location and events are loaded
+    if (!loadingLocation && !loadingEvents) {
+      setLoading(false);
+    }
+  }, [loadingLocation, loadingEvents]);
+
   const initialRegion = {
-    latitude: location?.coords.latitude || 12.9426658, // Default latitude
-    longitude: location?.coords.longitude || 80.13402, // Default longitude
-    latitudeDelta: 0.0922, // Zoom level
+    latitude: location?.coords.latitude || 12.9426658,
+    longitude: location?.coords.longitude || 80.13402,
+    latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   };
 
+  if (loading) {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Events Map' }} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text>Loading map and events...</Text>
+        </View>
+      </>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
-      <MapView
-        style={{ flex: 1 }}
-        initialRegion={initialRegion}
-        showsUserLocation
-      >
+      <Stack.Screen options={{ title: 'Events Map' }} />
+      <MapView style={{ flex: 1 }} initialRegion={initialRegion} showsUserLocation>
         {events.map(
           (event) =>
             event.long &&
@@ -32,13 +49,12 @@ export default function EventsMapView() {
               <Marker
                 key={event.id}
                 coordinate={{
-                  latitude: event.lat, // Assuming `lat` is a property of event
-                  longitude: event.long, // Assuming `long` is a property of event
+                  latitude: event.lat,
+                  longitude: event.long,
                 }}
-                title={event.title} // Event title
-                description={event.description} // Event description
+                title={event.title}
+                description={event.description}
                 onPress={() => {
-                  // Navigate to event details when marker is pressed
                   router.push(`/event/${event.id}`);
                 }}
               />
@@ -49,69 +65,3 @@ export default function EventsMapView() {
     </View>
   );
 }
-
-// // import Mapbox, {
-// //   Camera,
-// //   LocationPuck,
-// //   MapView,
-// //   ShapeSource,
-// //   SymbolLayer,
-// //   Images,
-// //   CircleLayer,
-// // } from '@rnmapbox/maps';
-// // import { featureCollection, point } from '@turf/helpers';
-// // import { router } from 'expo-router';
-// import { Text, View } from 'react-native';
-
-// // import { useNearbyEvents } from '~/hooks/useNearbyEvents';
-
-// // Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN);
-
-// export default function EventsMapView() {
-//   // const events = useNearbyEvents();
-//   // console.log(events);
-//   // console.log(events);
-//   // const points = events
-//   //   .filter((event) => event.long && event.lat)
-//   //   .map((event) => point([event.long, event.lat], { event }));
-
-//   return (
-//     <View className="flex-1 bg-red-300">
-//       {/*
-//       <MapView style={{ height: '100%' }}>
-//         <Camera followZoomLevel={14} followUserLocation />
-//         <LocationPuck puckBearingEnabled puckBearing="heading" pulsing={{ isEnabled: true }} />
-
-//         <ShapeSource
-//           id="events"
-//           shape={featureCollection(points)}
-//   onPress={(event) => router.push(`/event/${event.features[0].properties.event.id}`)}>*/}
-//           {/* Render points */}
-//           {/*<CircleLayer
-//             id="events"
-//             style={{
-//               circlePitchAlignment: 'map',
-//               circleColor: '#42E100',
-//               circleRadius: 10,
-//               circleOpacity: 1,
-//               circleStrokeWidth: 2,
-//               circleStrokeColor: 'white',
-//             }}
-//           />
-//           {/* <SymbolLayer
-//             id="events-icons"
-//             style={{
-//               iconImage: 'pin',
-//               iconSize: 0.5,
-//               iconAllowOverlap: true,
-//               iconAnchor: 'bottom',
-//             }}
-//           /> */}
-//           {/* <Images images={{ pin }} /> */}
-//         {/* </ShapeSource>
-//       </MapView>  */}
-
-//       <Text>Map</Text>
-//     </View>
-//   );
-// }

@@ -1,8 +1,10 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Redirect, router, Tabs } from 'expo-router';
 import { TabBarIcon } from '../../components/TabBarIcon';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { useAuth } from '~/contexts/AuthProvider';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
@@ -19,14 +21,12 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="events"
-        options={{
           title: 'Events',
-          headerShown: false,
+          headerRight: () => (
+            <TouchableOpacity onPress={() => router.push('/(tabs)/events/map')} className=" pr-[20px]">
+              <Ionicons name="globe-outline" size={24} color="black" />
+            </TouchableOpacity>
+          ),
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="event-available" size={24} color={color} />
           ),
@@ -46,6 +46,14 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="events"
+        options={{
+          href: null,
+          headerShown: false,
         }}
       />
     </Tabs>

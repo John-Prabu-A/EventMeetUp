@@ -17,7 +17,7 @@ export const useNearbyEvents = ({ fetchEvents }: UseNearbyEventsProps) => {
   const { location } = useLocationContext() as LocationContextType;
 
   useEffect(() => {
-    // if(events.length !== 0) return;
+    if(events.length !== 0) return;
     const getEvents = async () => {
       if (location) {
         const { latitude, longitude } = location.coords || { latitude: 12.9426658, longitude: 80.134024 };
@@ -29,7 +29,7 @@ export const useNearbyEvents = ({ fetchEvents }: UseNearbyEventsProps) => {
     };
 
     getEvents();
-  }, [fetchEvents]);
+  }, [location, fetchEvents]);
 
   return { events, loading };
 };
