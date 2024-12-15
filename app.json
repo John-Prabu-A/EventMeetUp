@@ -4,6 +4,7 @@
     "slug": "Meetup",
     "version": "1.0.0",
     "scheme": "Meetup",
+    "newArchEnabled": true,
     "web": {
       "bundler": "metro",
       "output": "static",

@@ -23,7 +23,9 @@ export default function TabLayout() {
         options={{
           title: 'Events',
           headerRight: () => (
-            <TouchableOpacity onPress={() => router.push('/(tabs)/events/map')} className=" pr-[20px]">
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/events/map')}
+              className=" pr-[20px]">
               <Ionicons name="globe-outline" size={24} color="black" />
             </TouchableOpacity>
           ),
@@ -46,6 +48,15 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="chatBot"
+        options={{
+          title: 'Chat',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
         }}
       />
 
