@@ -6,7 +6,7 @@ import { View, Text, Pressable } from 'react-native';
 
 import SupaImage from './SupaImage';
 import { supabase } from '~/utils/supabase';
-import { EventExtended, NearbyEvent, RecommendedEvent } from '~/types/db';
+import { EventExtended } from '~/types/db';
 
 export default function EventListItem({ event }: { event: EventExtended }) {
   const [numberOfAttendees, setNumberOfAttendees] = useState(0);
@@ -27,9 +27,8 @@ export default function EventListItem({ event }: { event: EventExtended }) {
   return (
     <Link href={`/event/${event.id}`} asChild>
       <Pressable
-        className="border-2 border-gray-200 rounded-lg p-3 bg-white shadow-md"
-        style={{ maxWidth: 400, height: 150, minWidth: 320 }}
-      >
+        className="rounded-lg border-2 border-gray-200 bg-white p-3 shadow-md"
+        style={{ maxWidth: 400, height: 150, minWidth: 350 }}>
         <View className="flex-row">
           <View className="flex-1 gap-2">
             <Text className="text-lg font-semibold uppercase text-amber-800">
@@ -52,7 +51,7 @@ export default function EventListItem({ event }: { event: EventExtended }) {
         </View>
 
         {/* Footer */}
-        <View className="flex-row gap-3 items-center mt-auto">
+        <View className="mt-auto flex-row items-center gap-3">
           <Text className="mr-auto text-gray-700">
             {numberOfAttendees} going · {Math.round(event.dist_meters / 1000)} km from you
           </Text>

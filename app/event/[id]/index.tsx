@@ -98,10 +98,7 @@ export default function EventPage() {
         {event.description}
       </Text>
 
-      <Link
-        href={`/event/${event.id}/attendance` as Href<`/event/${number}/attendance`>}
-        className="text-lg"
-        numberOfLines={2}>
+      <Link href={`/event/${event.id}/attendance` as Href} className="text-lg" numberOfLines={2}>
         View attendance
       </Link>
 
