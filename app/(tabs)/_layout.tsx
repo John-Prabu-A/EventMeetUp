@@ -1,10 +1,11 @@
-import { Redirect, router, Tabs } from 'expo-router';
-import { TabBarIcon } from '../../components/TabBarIcon';
+import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Redirect, router, Tabs } from 'expo-router';
+import { TouchableOpacity } from 'react-native';
+
+import { TabBarIcon } from '../../components/TabBarIcon';
 
 import { useAuth } from '~/contexts/AuthProvider';
-import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
@@ -23,7 +24,9 @@ export default function TabLayout() {
         options={{
           title: 'Events',
           headerRight: () => (
-            <TouchableOpacity onPress={() => router.push('/(tabs)/events/map')} className=" pr-[20px]">
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/events/map')}
+              className=" pr-[20px]">
               <Ionicons name="globe-outline" size={24} color="black" />
             </TouchableOpacity>
           ),
@@ -54,6 +57,22 @@ export default function TabLayout() {
         options={{
           href: null,
           headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
+        name="globalEvents"
+        options={{
+          title: 'Explore',
+          tabBarIcon: ({ color }) => <TabBarIcon name="compass" color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="bookmark"
+        options={{
+          title: 'Bookmarks',
+          tabBarIcon: ({ color }) => <TabBarIcon name="bookmark" color={color} />,
         }}
       />
     </Tabs>

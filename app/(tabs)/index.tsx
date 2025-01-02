@@ -1,8 +1,18 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Alert, BackHandler, FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 import { Href, Stack, useRouter } from 'expo-router';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  Alert,
+  BackHandler,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import EventListItem from '~/components/EventListItem';
+import VoiceAssistant from '~/components/VoiceAssistant';
 import { useLocationContext } from '~/contexts/LocationProvider';
 import { useRecommendedEvents } from '~/contexts/RecommendedEventsProvider';
 import { useNearbyEventsWithDefaultService } from '~/hooks/useNearbyEvents';
@@ -36,18 +46,18 @@ export default function Events() {
 
     // Handle the back button press
     const backAction = () => {
-      Alert.alert("Exit App", "Do you want to exit the app?", [
+      Alert.alert('Exit App', 'Do you want to exit the app?', [
         {
-          text: "Cancel",
+          text: 'Cancel',
           onPress: () => null,
-          style: "cancel"
+          style: 'cancel',
         },
-        { text: "YES", onPress: () => BackHandler.exitApp() }
+        { text: 'YES', onPress: () => BackHandler.exitApp() },
       ]);
       return true;
     };
 
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
     return () => {
       // Clean up the back handler
@@ -58,7 +68,7 @@ export default function Events() {
   const onSearch = () => {
     let query = searchQuery.trim();
     if (query) {
-      setSearchQuery("");
+      setSearchQuery('');
       router.push(`/(tabs)/events/search-results?query=${encodeURIComponent(query)}` as Href);
     }
   };
@@ -74,9 +84,9 @@ export default function Events() {
   }, [location, fetchRecommendedEvents]);
 
   const renderSearchBar = () => (
-    <View className="flex-row items-center my-2.5">
+    <View className="my-2.5 flex-row items-center">
       <TextInput
-        className="flex-1 h-10 border border-gray-300 rounded-lg px-2.5 bg-white mr-2.5"
+        className="mr-2.5 h-10 flex-1 rounded-lg border border-gray-300 bg-white px-2.5"
         placeholder="Search events..."
         value={searchQuery}
         onChangeText={setSearchQuery}
@@ -85,8 +95,7 @@ export default function Events() {
       />
       <Pressable
         onPress={onSearch}
-        className="ml-auto items-center rounded-md bg-amber-700 p-[7px] px-8"
-      >
+        className="ml-auto items-center rounded-md bg-amber-700 p-[7px] px-8">
         <Text className="text-lg font-bold text-white">Search</Text>
       </Pressable>
     </View>
@@ -94,7 +103,7 @@ export default function Events() {
 
   const renderRecommendedEvents = () => (
     <View style={{ flex: 1, marginBottom: 10 }}>
-      <View className="flex-1 px-2.5 bg-gray-100">{renderSearchBar()}</View>
+      <View className="flex-1 bg-gray-100 px-2.5">{renderSearchBar()}</View>
       <Text style={{ fontSize: 24, fontWeight: 'bold' }}>{EVENT_TITLES.recommended}</Text>
       <FlatList
         data={recommendedEvents}
@@ -121,7 +130,9 @@ export default function Events() {
           <EventListItem event={{ ...item, location_point: null, embedding: null }} />
         )}
         keyExtractor={(item) => item.id.toString()}
-        refreshControl={<RefreshControl refreshing={loadingNearbyEvents || refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl refreshing={loadingNearbyEvents || refreshing} onRefresh={onRefresh} />
+        }
         showsVerticalScrollIndicator={false}
         className="gap-1.5 p-1.5"
       />
@@ -133,22 +144,22 @@ export default function Events() {
     const backAction = () => {
       // If the stack has a previous page, go back to it
       if (router.canGoBack()) {
-        router.back();  // Use router.back() to go back to the previous page
+        router.back(); // Use router.back() to go back to the previous page
       } else {
-        Alert.alert("Exit App", "Do you want to exit the app?", [
+        Alert.alert('Exit App', 'Do you want to exit the app?', [
           {
-            text: "Cancel",
+            text: 'Cancel',
             onPress: () => null,
-            style: "cancel"
+            style: 'cancel',
           },
-          { text: "YES", onPress: () => BackHandler.exitApp() }
+          { text: 'YES', onPress: () => BackHandler.exitApp() },
         ]);
       }
       return true; // Prevent default back behavior
     };
 
     // Add event listener for back press
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
     // Clean up the back handler on component unmount
     return () => {
@@ -159,6 +170,7 @@ export default function Events() {
   return (
     <>
       <Stack.Screen options={{ title: 'Events' }} />
+
       <FlatList
         data={[]}
         keyExtractor={() => 'key'}
@@ -167,6 +179,7 @@ export default function Events() {
           <>
             {!errorRecommendedEvents && renderRecommendedEvents()}
             {renderNearbyEvents()}
+            <VoiceAssistant />
           </>
         }
         contentContainerStyle={{ flexGrow: 1, margin: 5 }}

@@ -1,12 +1,14 @@
 import dayjs from 'dayjs';
 import { useLocalSearchParams, Stack, Link, Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View, Pressable, ActivityIndicator } from 'react-native';
+import { Text, View, Pressable, ActivityIndicator, Share } from 'react-native';
 
 import SupaImage from '~/components/SupaImage';
 import { useAuth } from '~/contexts/AuthProvider';
 import { Attendance, Event } from '~/types/db';
 import { supabase } from '~/utils/supabase';
+
+import QRCode from 'react-native-qrcode-svg';
 
 export default function EventPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -88,6 +90,7 @@ export default function EventPage() {
       <Text className="text-3xl font-bold" numberOfLines={2}>
         {event.title}
       </Text>
+
       <Text className="text-lg font-semibold uppercase text-amber-800">
         {dayjs(event.date).format('ddd, D MMM')} · {dayjs(event.date).format('h:mm A')}
       </Text>
@@ -104,6 +107,9 @@ export default function EventPage() {
         numberOfLines={2}>
         View attendance
       </Link>
+
+      <QRCode value={`https://example.com/event/${event.id}`} size={150} />
+      <Text>Scan to Share Event</Text>
 
       {/* Footer */}
       <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between border-t-2 border-gray-300 p-5 pb-10">
