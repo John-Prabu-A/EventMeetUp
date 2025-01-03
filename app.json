@@ -24,7 +24,14 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location.",
           "locationWhenInUsePermission": "Show current location on map."
         }
-      ]
+      ],
+      [
+            "@react-native-voice/voice",
+            {
+              "microphonePermission": "CUSTOM: Allow $(PRODUCT_NAME) to access the microphone",
+              "speechRecognitionPermission": "CUSTOM: Allow $(PRODUCT_NAME) to securely recognize user speech"
+            }
+          ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -52,7 +59,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.johnprabua.Meetup",
-      "permissions": ["ACCESS_FINE_LOCATION"]
+      "permissions": ["ACCESS_FINE_LOCATION","android.permission.RECORD_AUDIO"]
     }
   }
 }
