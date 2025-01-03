@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { View, Text, Pressable, ActivityIndicator, Share } from 'react-native';
 
 import SupaImage from './SupaImage';
-
 import { EventExtended, NearbyEvent, RecommendedEvent } from '~/types/db';
 import { supabase } from '~/utils/supabase';
 

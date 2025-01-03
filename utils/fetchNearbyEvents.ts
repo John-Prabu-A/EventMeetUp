@@ -14,6 +14,7 @@ export const fetchNearbyEvents: EventService['fetchNearbyEvents'] = async (lat: 
             console.error('Error fetching events:', error);
             return null;
         }
+        // console.log("Data : ", JSON.stringify(data, null, 2));
         return data;
     } catch (error) {
         console.error('Error fetching events:', error);

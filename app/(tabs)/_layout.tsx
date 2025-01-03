@@ -53,6 +53,15 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="chatBot"
+        options={{
+          title: 'Chat',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
         name="events"
         options={{
           href: null,

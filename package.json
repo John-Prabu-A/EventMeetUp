@@ -42,6 +42,7 @@
     "expo-status-bar": "~2.0.0",
     "expo-system-ui": "~4.0.3",
     "expo-web-browser": "~14.0.1",
+    "formik": "^2.4.6",
     "nativewind": "next",
     "onnxruntime-react-native": "^1.20.0",
     "react": "18.3.1",
@@ -62,7 +63,8 @@
     "react-native-web": "~0.19.13",
     "turf": "^3.0.14",
     "wellknown": "^0.5.0",
-    "wkx": "^0.5.0"
+    "wkx": "^0.5.0",
+    "yup": "^1.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
