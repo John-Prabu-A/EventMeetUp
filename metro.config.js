@@ -6,4 +6,10 @@ const { withNativeWind } = require('nativewind/metro');
 // eslint-disable-next-line no-undef
 const config = getDefaultConfig(__dirname);
 
-module.exports = withNativeWind(config, { input: './global.css' });
+config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== 'native.js');
+config.resolver.platforms = ['web', 'ios', 'android'];
+config.resolver.assetExts.push('cjs');
+
+module.exports = withNativeWind(config, {
+  input: './global.css',
+});

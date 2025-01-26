@@ -1,15 +1,16 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, TextInput, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  useColorScheme,
+} from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { useLocalSearchParams, Redirect, useRouter, Href } from 'expo-router';
-import Animated, {
-  Easing,
-  withTiming,
-  useAnimatedStyle,
-  runOnJS,
-  useSharedValue,
-} from 'react-native-reanimated';
+import { useLocalSearchParams, useRouter, Href } from 'expo-router';
+import { Easing, withTiming, runOnJS, useSharedValue } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '~/providers/AuthProvider';
 import Button from '~/components/AuthButton';
@@ -17,6 +18,7 @@ import { supabase } from '~/utils/supabase';
 
 import { useNearbyEventsWithDefaultService } from '~/hooks/useNearbyEvents';
 import getEmbedding from '~/utils/generateEmbedding';
+import Toast from 'react-native-toast-message';
 
 type UserData = {
   email: string;
@@ -50,7 +52,8 @@ export default function AuthForm() {
   const { updateAuth } = useAuth();
   const router = useRouter();
   const { events, loading: eventsLoading } = useNearbyEventsWithDefaultService();
-  console.log('Events in Login : ', events);
+  // console.log('Events in Login : ', events);
+  const colorScheme = useColorScheme();
 
   const toggleFormType = useCallback(() => {
     animationValue.value = withTiming(
@@ -95,6 +98,7 @@ export default function AuthForm() {
 }]`)
   ) {
     console.log('Inside Update Events : ', events);
+    setLoading(true);
     const text = JSON.stringify(events[0], null, 2);
     console.log('Text is ', text);
     try {
@@ -107,12 +111,19 @@ export default function AuthForm() {
       console.log('User Embedding Data : ', embeddingData);
       if (!embeddingData) return;
 
-      if (embeddingError) Alert.alert(embeddingError as string);
-      console.log('No error in user embedding retreval');
+      if (embeddingError)
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: embeddingError as string,
+          visibilityTime: 2000,
+          autoHide: true,
+        });
+      // console.log('No error in user embedding retreval');
       if (embeddingData.user_embedding) return; // Embedding already exists
       console.log('NO user embedding creating...');
       const embedding = await getEmbedding(text);
-      console.log('created Embedding : ', embedding);
+      // console.log('created Embedding : ', embedding);
       // Insert embedding into database
       const { data: updateData, error: insertError } = await supabase
         .from('profiles')
@@ -122,9 +133,24 @@ export default function AuthForm() {
         } as any)
         .eq('id', userId);
       console.log('updated Data : ', updateData);
-      if (insertError) Alert.alert(insertError.message);
+      if (insertError)
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: insertError.message,
+          visibilityTime: 2000,
+          autoHide: true,
+        });
     } catch (error) {
-      Alert.alert('Error fetching embedding: ' + (error as Error).message);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error as string,
+        visibilityTime: 2000,
+        autoHide: true,
+      });
+    } finally {
+      setLoading(true);
     }
   }
 
@@ -141,10 +167,16 @@ export default function AuthForm() {
       setLoading(false);
 
       if (error) {
-        Alert.alert('Sign In Error', error.message);
+        Toast.show({
+          type: 'error',
+          text1: 'Sign In Error',
+          text2: error.message,
+          visibilityTime: 2000,
+          autoHide: true,
+        });
       } else {
         updateAuth();
-        router.navigate('/(tabs)' as Href);
+        router.navigate('/');
       }
     },
     [updateAuth]
@@ -159,13 +191,25 @@ export default function AuthForm() {
       password: values.password,
     });
     if (error) {
-      Alert.alert('Sign Up Error', error.message);
+      Toast.show({
+        type: 'error',
+        text1: 'SignUp Error',
+        text2: error.message,
+        visibilityTime: 2000,
+        autoHide: true,
+      });
       setLoading(false);
       return;
     }
 
     if (!session.user) {
-      Alert.alert('Sign Up Error', 'User Not Created!');
+      Toast.show({
+        type: 'error',
+        text1: 'Sign Up Error',
+        text2: 'User Not Created!',
+        visibilityTime: 2000,
+        autoHide: true,
+      });
       setLoading(false);
       return;
     }
@@ -178,9 +222,9 @@ export default function AuthForm() {
     await insertProfile(userId, userEmail);
     if (events.length !== 0) await updateUserEmbedding(userId, events);
     else await updateUserEmbedding(userId);
-    setLoading(false);
-
     toggleFormType();
+
+    setLoading(false);
   }, []);
 
   const handleAuth = useCallback(
@@ -192,7 +236,13 @@ export default function AuthForm() {
 
   if (loading || eventsLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colorScheme === 'dark' ? '#111' : '#eee',
+        }}>
         <ActivityIndicator size="large" color="#f59e0b" />
       </View>
     );
@@ -220,17 +270,23 @@ export default function AuthForm() {
       }}
       validationSchema={validationSchema}>
       {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
-        <View style={{ flex: 1, justifyContent: 'center', padding: 10, backgroundColor: '#fff' }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            padding: 10,
+            backgroundColor: colorScheme === 'dark' ? '#111' : '#eee',
+          }}>
           <View style={[{ padding: 10 }]}>
             {/* Conditionally render the sign-in or sign-up forms */}
-            <Text className="mt-4 text-lg font-semibold text-black">Email</Text>
+            <Text className="mt-4 text-lg font-semibold text-black dark:text-white">Email</Text>
             <TextInput
               ref={emailRef}
               value={values.email}
               onChangeText={handleChange('email')}
               onBlur={handleBlur('email')}
               autoCapitalize="none"
-              selectionColor="#f59e0b"
+              cursorColor="#f59e0b"
               style={{
                 height: 40,
                 padding: 10,
@@ -238,6 +294,7 @@ export default function AuthForm() {
                 borderRadius: 5,
                 marginTop: 10,
                 borderColor: '#cccccc',
+                color: colorScheme === 'dark' ? '#fff' : '#000',
               }}
               placeholder="Email"
               placeholderTextColor="#888888"
@@ -248,7 +305,7 @@ export default function AuthForm() {
               <Text className="mt-2 text-red-500">{errors.email}</Text>
             )}
 
-            <Text className="mt-4 text-lg font-semibold text-black">Password</Text>
+            <Text className="mt-4 text-lg font-semibold text-black dark:text-white">Password</Text>
             <View className="mt-2 flex flex-row items-center">
               <TextInput
                 ref={passwordRef}
@@ -256,7 +313,7 @@ export default function AuthForm() {
                 onChangeText={handleChange('password')}
                 onBlur={handleBlur('password')}
                 autoCapitalize="none"
-                selectionColor="#f59e0b"
+                cursorColor="#f59e0b"
                 style={{
                   height: 40,
                   padding: 10,
@@ -264,6 +321,7 @@ export default function AuthForm() {
                   borderRadius: 5,
                   flex: 1,
                   borderColor: '#cccccc',
+                  color: colorScheme === 'dark' ? '#fff' : '#000',
                 }}
                 placeholder="Password"
                 placeholderTextColor="#888888"
@@ -285,14 +343,16 @@ export default function AuthForm() {
 
             {isSignUp && (
               <>
-                <Text className="mt-4 text-lg font-semibold text-black">Confirm Password</Text>
+                <Text className="mt-4 text-lg font-semibold text-black dark:text-white">
+                  Confirm Password
+                </Text>
                 <View className="mt-2 flex flex-row items-center">
                   <TextInput
                     value={values.confirmPassword}
                     onChangeText={handleChange('confirmPassword')}
                     onBlur={handleBlur('confirmPassword')}
                     autoCapitalize="none"
-                    selectionColor="#f59e0b"
+                    cursorColor="#f59e0b"
                     style={{
                       height: 40,
                       padding: 10,
@@ -300,6 +360,7 @@ export default function AuthForm() {
                       borderRadius: 5,
                       flex: 1,
                       borderColor: '#cccccc',
+                      color: colorScheme === 'dark' ? '#fff' : '#000',
                     }}
                     placeholder="Confirm Password"
                     placeholderTextColor="#888888"
@@ -320,6 +381,7 @@ export default function AuthForm() {
                 )}
               </>
             )}
+            <View className="h-10 w-full"></View>
 
             <Button
               disabled={loading}
@@ -333,9 +395,7 @@ export default function AuthForm() {
                     : 'Log In'
               }
               onPress={handleSubmit as () => void}
-              className={
-                `mt-6 rounded-md py-2 text-white ` + loading ? 'bg-amber-400' : 'bg-amber-500'
-              }
+              className={`rounded-md py-2 text-white ` + loading ? 'bg-amber-400' : 'bg-amber-500'}
             />
             <Text
               onPress={toggleFormType}

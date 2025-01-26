@@ -1,13 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Pressable, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Pressable,
+  Image,
+  useColorScheme,
+} from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import { fetchEventsByQuery } from '~/utils/fetchEventsByQuery';
 import { useLocationContext } from '~/contexts/LocationProvider';
 import { LocationContextType } from '~/types/db';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import { Asset } from 'expo-asset';
+import { FontAwesome6 } from '@expo/vector-icons';
+import { DrawerActions } from '@react-navigation/native';
 
-const imageSource = Asset.fromModule(require('../../assets/bot-icon.png')).uri;
+const imageSource = Asset.fromModule(require('../../../assets/bot-icon.png')).uri;
 
 interface Message {
   text: string;
@@ -35,6 +46,8 @@ const ChatbotPage: React.FC = () => {
   const { location } = useLocationContext() as LocationContextType;
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
+  const navigation = useNavigation();
+  const colorScheme = useColorScheme(); // Detect dark or light theme
 
   const responseFormats = [
     "Here's something you might like:",
@@ -54,20 +67,19 @@ const ChatbotPage: React.FC = () => {
 
     const userMessage: Message = { text: inputMessage, sender: 'user' };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
-
+    setInputMessage('');
     try {
       const events = await fetchEventsByQuery(inputMessage, location);
       // @ts-ignore
       const eventsToRender: EventData[] = events?.splice(0, 2);
 
-      // Generate bot message in parts (including events)
       const botMessages: Message[] =
         eventsToRender && eventsToRender.length > 0
           ? eventsToRender.map((event) => {
               return {
                 text: `${responseFormats[Math.floor(Math.random() * responseFormats.length)]}\n🎈${event.title} at ${event.location} (${((event.dist_meters || 0) / 1000).toFixed(2)} km away).`,
                 sender: 'bot',
-                events: [event], // Attach event to each message
+                events: [event],
               };
             })
           : [
@@ -86,8 +98,6 @@ const ChatbotPage: React.FC = () => {
       };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
     }
-
-    setInputMessage('');
   };
 
   useEffect(() => {
@@ -100,33 +110,55 @@ const ChatbotPage: React.FC = () => {
         className={`my-2 max-w-[75%] rounded-xl border-2 px-4 py-3 shadow-md ${
           item.sender === 'user'
             ? 'self-end border-gray-300 bg-amber-500 text-white'
-            : 'self-start border-gray-200 bg-gray-100'
+            : colorScheme === 'dark'
+              ? 'self-start border-gray-700 bg-gray-800 text-white'
+              : 'self-start border-gray-200 bg-gray-100 text-gray-800'
         }`}>
-        <Text className={`text-base ${item.sender === 'user' ? 'text-white' : 'text-gray-800'}`}>
+        <Text
+          className={`text-base ${
+            item.sender === 'user'
+              ? 'text-white'
+              : colorScheme === 'dark'
+                ? 'text-white'
+                : 'text-gray-800'
+          }`}>
           {item.text}
         </Text>
         {item.events &&
           item.events.map((event) => (
-            <View key={event.id}>
+            <Pressable key={event.id} onPress={() => router.push(`/events/event/${event.id}`)}>
               <Text
-                className="mt-2 text-sm text-amber-600 underline"
-                onPress={() => router.push(`/event/${event.id}`)}>
+                className={`mt-2 text-sm ${
+                  colorScheme === 'dark' ? 'text-amber-300' : 'text-amber-600'
+                } underline`}>
                 {event.title} ({(event.dist_meters / 1000).toFixed(2)} km away)
               </Text>
-              <Text className="text-xs text-gray-500">{event.description}</Text>{' '}
-              {/* Event Description */}
-            </View>
+              <Text
+                className={`text-xs ${colorScheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                {event.description}
+              </Text>
+            </Pressable>
           ))}
       </Pressable>
     </View>
   );
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className={`flex-1 ${colorScheme === 'dark' ? 'bg-[#111]' : 'bg-[#eee]'}`}>
       {/* Top Bar */}
-      <View className="shadow-opacity-10 shadow-offset-y-4 flex-row items-center bg-white px-4 py-2 shadow-md">
-        <TouchableOpacity onPress={() => router.back()} className="mx-2">
-          <Feather name="arrow-left" size={24} color="black" />
+      <View
+        className={`shadow-opacity-10 shadow-offset-y-4 p-4r flex-row items-center border-b-[1px] ${
+          colorScheme === 'dark' ? 'border-[#777] bg-[#111]' : 'border-[#ccc] bg-[#eee]'
+        } py-2 shadow-md`}>
+        <TouchableOpacity
+          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          className=" pr-[20px]">
+          <FontAwesome6
+            name="bars-staggered"
+            size={24}
+            className="py-3 pl-3"
+            color={colorScheme === 'dark' ? 'white' : 'black'}
+          />
         </TouchableOpacity>
         {/* Bot Image and Name */}
         <View className="flex flex-row items-center justify-center gap-2 ">
@@ -134,16 +166,20 @@ const ChatbotPage: React.FC = () => {
             source={{ uri: imageSource }}
             className="aspect-square w-14 rounded-full bg-gray-100"
           />
-          <Text className="mt-2 text-lg font-medium text-gray-700">Meetup Bot</Text>
+          <Text
+            className={`mt-2 text-lg font-medium ${colorScheme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
+            Meetup Bot
+          </Text>
         </View>
       </View>
 
       {messages.length === 0 ? (
         <View className="flex-1 items-center justify-center p-4">
-          <Text className="mb-2 text-lg font-medium text-gray-700">
+          <Text
+            className={`mb-2 text-lg font-medium ${colorScheme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
             Hi! How can I help you today?
           </Text>
-          <Text className="text-sm text-gray-500">
+          <Text className={`text-sm ${colorScheme === 'dark' ? 'text-[#aaa]' : 'text-[#888]'}`}>
             Try asking something like "Best place to Learn painting" or "Events near me."
           </Text>
         </View>
@@ -157,13 +193,19 @@ const ChatbotPage: React.FC = () => {
         />
       )}
 
-      <View className="flex-row items-center border-t border-gray-300 bg-white p-3">
+      <View
+        className={`flex-row items-center border-t border-gray-300 ${
+          colorScheme === 'dark' ? 'bg-[#111]' : 'bg-[#eee]'
+        } p-3`}>
         <TextInput
-          className="flex-1 rounded-full border border-gray-300 bg-gray-50 px-4 py-2 text-base text-gray-700"
+          className={`flex-1 rounded-full border focus:border-amber-500 border-[#666] ${
+            colorScheme === 'dark' ? 'bg-[#222] text-white' : 'bg-gray-50 text-gray-700'
+          } px-4 py-2 text-base`}
+          placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'}
           value={inputMessage}
           onChangeText={setInputMessage}
           placeholder="Type your message..."
-          placeholderTextColor="#9CA3AF"
+          cursorColor={'#f59e0b'}
         />
         <TouchableOpacity
           className="ml-3 items-center justify-center rounded-full bg-amber-500 p-3"

@@ -1,5 +1,5 @@
-import { Alert } from "react-native";
 import { supabase } from "./supabase";
+import Toast from "react-native-toast-message";
 
 export default async function getEmbedding(text: string): Promise<number[]> {
     // Get embedding from embeddings server
@@ -17,7 +17,13 @@ export default async function getEmbedding(text: string): Promise<number[]> {
         const { embeddings } = await fetchedData.json();
         return embeddings;
     } catch (error) {
-        Alert.alert('Error fetching embedding: ' + (error as Error).message);
+        Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: (error as Error).message,
+            visibilityTime: 2000,
+            autoHide: true,
+        });
     }
     return [];
 }

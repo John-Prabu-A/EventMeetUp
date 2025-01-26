@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, useColorScheme } from 'react-native';
 import Voice from '@react-native-voice/voice';
 import Tts from 'react-native-tts';
 
@@ -7,6 +7,7 @@ const VoiceAssistant = () => {
   const [isListening, setIsListening] = useState(false);
   const [speechText, setSpeechText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     // Initialize TTS properly with error handling
@@ -77,7 +78,9 @@ const VoiceAssistant = () => {
       <Text style={styles.speechText}>You said: {speechText}</Text>
 
       {isLoading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <View className="flex-1 items-center justify-center bg-[#eee] dark:bg-[#111]">
+          <ActivityIndicator size="large" color={colorScheme === 'dark' ? 'white' : '#f59e0b'} />
+        </View>
       ) : (
         <TouchableOpacity
           style={styles.button}

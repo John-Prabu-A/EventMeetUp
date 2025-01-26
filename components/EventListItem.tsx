@@ -1,13 +1,22 @@
 import Feather from '@expo/vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
-import { Link } from 'expo-router';
+import { Href, Link } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, ActivityIndicator, Share } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  ActivityIndicator,
+  Share,
+  useColorScheme,
+  Linking,
+} from 'react-native';
 
 import SupaImage from './SupaImage';
-import { EventExtended, NearbyEvent, RecommendedEvent } from '~/types/db';
+import { EventExtended } from '~/types/db';
 import { supabase } from '~/utils/supabase';
+import { FontAwesome } from '@expo/vector-icons';
 
 export default function EventListItem({
   event,
@@ -19,6 +28,7 @@ export default function EventListItem({
   const [numberOfAttendees, setNumberOfAttendees] = useState(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const colorScheme = useColorScheme(); // Get the current theme (light or dark)
 
   useEffect(() => {
     checkBookmark();
@@ -40,11 +50,21 @@ export default function EventListItem({
   const shareEvent = async () => {
     if (!event) return;
 
+    // Format the event date and time
+    const startDate = dayjs(event.date).format('YYYYMMDDTHHmmssZ');
+    const endDate = dayjs(event.date).add(1, 'hour').format('YYYYMMDDTHHmmssZ');
+
+    // Generate Google Calendar link dynamically
+    const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      event.title
+    )}&dates=${startDate}/${endDate}&details=${encodeURIComponent(
+      event.description || 'Join us for this event!'
+    )}&location=${encodeURIComponent(event.location || '')}&sf=true&output=xml`;
+
+    // Prepare the message for sharing
     const shareOptions = {
       title: 'Check out this event!',
-      message: `🎉 ${event.title}\n📅 ${dayjs(event.date).format('ddd, D MMM h:mm A')}\n📍 ${
-        event.location
-      }\n\nJoin me here: https://example.com/event/${event.id}`, // Replace with your app's event link
+      message: `🎉 ${event.title}\n📅 ${dayjs(event.date).format('ddd, D MMM h:mm A')}\n📍 ${event.location}\nAdd to Calendar: ${calendarLink}`,
     };
 
     try {
@@ -54,18 +74,9 @@ export default function EventListItem({
     }
   };
 
-  if (loading) {
-    return <ActivityIndicator />;
-  }
-
-  if (!event) {
-    return <Text>Event not found</Text>;
-  }
-
   const checkBookmark = async () => {
     const savedEvents = JSON.parse((await AsyncStorage.getItem('bookmarkedEvents')) ?? '[]') || [];
     setIsBookmarked(savedEvents.some((savedEvent: { id: number }) => savedEvent.id === event.id));
-    console.log(savedEvents);
   };
 
   const toggleBookmark = async () => {
@@ -74,37 +85,53 @@ export default function EventListItem({
     let updatedEvents;
 
     if (isBookmarked) {
-      // Remove from bookmarks
       updatedEvents = savedEvents.filter(
         (savedEvent: { id: number }) => savedEvent.id !== event.id
       );
-      console.log('ue: ', updatedEvents);
     } else {
-      // Add to bookmarks
       updatedEvents = [...savedEvents, event];
     }
 
-    // Save the updated list to AsyncStorage
     await AsyncStorage.setItem('bookmarkedEvents', JSON.stringify(updatedEvents));
     checkBookmark();
   };
 
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-[#eee] dark:bg-[#111]">
+        <ActivityIndicator size="large" color={colorScheme === 'dark' ? 'white' : '#f59e0b'} />
+      </View>
+    );
+  }
+
+  if (!event) {
+    return (
+      <View className="flex-1 items-center justify-center bg-[#eee] dark:bg-[#111]">
+        <Text className="text-gray-500">Event not found</Text>
+      </View>
+    );
+  }
+
   return (
-    <Link href={`/event/${event.id}`} asChild>
+    <Link href={`/events/event/${event.id}`} asChild>
       <Pressable
-        className="rounded-lg border-2 border-gray-200 bg-white p-3 shadow-md"
-        style={{ maxWidth: 400, height: 150, minWidth: 320 }}>
+        className={`m-1.5 rounded-lg border-2 p-4 shadow-md ${colorScheme === 'dark' ? 'border-[rgba(100,100,100,0.5)] bg-[#000000]' : 'border-gray-200 bg-white'}`}
+        style={{ maxWidth: 400, height: 150, minWidth: 350 }}>
         <View className="flex-row">
           <View className="flex-1 gap-2">
-            <Text className="text-lg font-semibold uppercase text-amber-800">
+            <Text
+              className={`text-lg font-semibold uppercase ${colorScheme === 'dark' ? 'text-amber-500' : 'text-amber-800'}`}>
               {dayjs(event.date).format('ddd, D MMM')} · {dayjs(event.date).format('h:mm A')}
             </Text>
-            <Text className="text-xl font-bold" numberOfLines={2}>
+            <Text
+              className={`text-xl font-bold ${colorScheme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+              numberOfLines={2}>
               {event.title}
             </Text>
 
-            {/* Ensure the location is wrapped in a Text component */}
-            <Text className="text-gray-700" numberOfLines={1}>
+            <Text
+              className={`${colorScheme === 'dark' ? 'text-[#ffc18b]' : 'text-gray-600'}`}
+              numberOfLines={1}>
               {event.location}
             </Text>
           </View>
@@ -117,16 +144,23 @@ export default function EventListItem({
 
         {/* Footer */}
         <View className="mt-auto flex-row items-center gap-3">
-          <Text className="mr-auto text-gray-700">
+          <Text className={`mr-auto ${colorScheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
             {numberOfAttendees} going · {Math.round(event.dist_meters / 1000)} km from you
           </Text>
-          <Feather name="share" size={20} color="green" onPress={shareEvent} />
+          <Feather
+            name="share"
+            size={20}
+            color={colorScheme === 'dark' ? '#00ff00' : 'green'}
+            onPress={shareEvent}
+            className="mx-2 p-2"
+          />
           {!inBookmarks && (
-            <Feather
-              name="bookmark"
+            <FontAwesome
+              name={isBookmarked ? 'bookmark' : 'bookmark-o'}
               size={20}
-              color={isBookmarked ? 'blue' : 'gray'}
+              color={isBookmarked ? 'rgb(180 83 9)' : 'grey'}
               onPress={toggleBookmark}
+              className="pl-2"
             />
           )}
         </View>
